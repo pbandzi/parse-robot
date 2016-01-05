@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generated="20151002 07:08:24.124" generator="Robot 2.9.1 (Python 2.7.5 on linux2)">
+<suite source="/home/jenkins-ci/workspace/functest-foreman-stable-arno/testcases/Controllers/ODL/CI/integration/test/csit/suites/integration/basic" id="s1" name="Basic">
+<suite source="/home/jenkins-ci/workspace/functest-foreman-stable-arno/testcases/Controllers/ODL/CI/integration/test/csit/suites/integration/basic/010_Restconf_OK.robot" id="s1-s1" name="010 Restconf OK">
+<kw type="setup" name="Create Session" library="RequestsLibrary">
+<doc>Create Session: create a HTTP session to a server</doc>
+<arguments>
+<arg>session</arg>
+<arg>http://${CONTROLLER}:${RESTCONFPORT}</arg>
+<arg>auth=${AUTH}</arg>
+<arg>headers=${HEADERS_XML}</arg>
+</arguments>
+<status status="PASS" endtime="20151002 07:08:24.303" starttime="20151002 07:08:24.302"></status>
+</kw>
+<test id="s1-s1-t1" name="Get Controller Modules">
+<kw name="Get" library="RequestsLibrary">
+<doc>* * *   Depricated - See Get Request now   * * *</doc>
+<arguments>
+<arg>session</arg>
+<arg>${REST_CONTEXT}</arg>
+</arguments>
+<assign>
+<var>${resp}</var>
+</assign>
+<msg timestamp="20151002 07:08:24.308" level="INFO">Starting new HTTP connection (1): 192.168.1.5</msg>
+<msg timestamp="20151002 07:08:24.331" level="INFO">Deprication Warning  Use Get Request in the future</msg>
+<msg timestamp="20151002 07:08:24.332" level="INFO">${resp} = &lt;Response [200]&gt;</msg>
+<status status="PASS" endtime="20151002 07:08:24.332" starttime="20151002 07:08:24.303"></status>
+</kw>
+<kw name="Log" library="BuiltIn">
+<doc>Logs the given message with the given level.</doc>
+<arguments>
+<arg>${resp.content}</arg>
+</arguments>
+<msg timestamp="20151002 07:08:24.333" level="INFO">{"modules":{"module":[{"name":"rpc-context","revision":"2013-06-17","namespace":"urn:ietf:params:xml:ns:yang:rpc-context"},{"name":"ietf-inet-types","revision":"2010-09-24","namespace":"urn:ietf:params:xml:ns:yang:ietf-inet-types"},{"name":"openflow-types","revision":"2013-07-31","namespace":"urn:opendaylight:openflow:common:types"},{"name":"ietf-yang-types","revision":"2010-09-24","namespace":"urn:ietf:params:xml:ns:yang:ietf-yang-types"},{"name":"sal-remote","revision":"2014-01-14","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:remote"},{"name":"ietf-netconf-monitoring","revision":"2010-10-04","namespace":"urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"},{"name":"ietf-netconf-monitoring-extension","revision":"2013-12-10","namespace":"urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring-extension"},{"name":"yang-ext","revision":"2013-07-09","namespace":"urn:opendaylight:yang:extension:yang-ext"},{"name":"opendaylight-meter-types","revision":"2013-09-18","namespace":"urn:opendaylight:meter:types"},{"name":"system-notifications","revision":"2013-09-27","namespace":"urn:opendaylight:openflow:system"},{"name":"opendaylight-md-sal-common","revision":"2013-10-28","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:common"},{"name":"openflow-instruction","revision":"2013-07-31","namespace":"urn:opendaylight:openflow:common:instruction"},{"name":"opendaylight-inventory","revision":"2013-08-19","namespace":"urn:opendaylight:inventory"},{"name":"flow-capable-transaction","revision":"2013-11-03","namespace":"urn:opendaylight:flow:transaction"},{"name":"netconf-node-inventory","revision":"2014-01-08","namespace":"urn:opendaylight:netconf-node-inventory"},{"name":"ietf-yang-types","revision":"2013-07-15","namespace":"urn:ietf:params:xml:ns:yang:ietf-yang-types"},{"name":"ietf-restconf","revision":"2013-10-19","namespace":"urn:ietf:params:xml:ns:yang:ietf-restconf"},{"name":"openflow-configuration","revision":"2014-06-30","namespace":"urn:opendaylight:openflow:config"},{"name":"opendaylight-statistics-types","revision":"2013-09-25","namespace":"urn:opendaylight:model:statistics:types"},{"name":"flow-errors","revision":"2013-11-16","namespace":"urn:opendaylight:flow:errors"},{"name":"network-topology","revision":"2013-10-21","namespace":"urn:TBD:params:xml:ns:yang:network-topology"},{"name":"opendaylight-topology-view","revision":"2013-10-30","namespace":"urn:opendaylight:model:topology:view"},{"name":"opendaylight-topology","revision":"2013-10-30","namespace":"urn:opendaylight:model:topology:general"},{"name":"opendaylight-topology-inventory","revision":"2013-10-30","namespace":"urn:opendaylight:model:topology:inventory"},{"name":"network-topology","revision":"2013-07-12","namespace":"urn:TBD:params:xml:ns:yang:network-topology"},{"name":"sal-remote-augment","revision":"2014-07-08","namespace":"urn:sal:restconf:event:subscription"},{"name":"config","revision":"2013-04-05","namespace":"urn:opendaylight:params:xml:ns:yang:controller:config"},{"name":"openflow-switch-connection-provider","revision":"2014-03-28","namespace":"urn:opendaylight:params:xml:ns:yang:openflow:switch:connection:provider"},{"name":"nicira-extension","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:controller:config:openflowplugin:nx:config"},{"name":"opendaylight-md-sal-binding","revision":"2013-10-28","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding"},{"name":"openflow-switch-connection-provider-impl","revision":"2014-03-28","namespace":"urn:opendaylight:params:xml:ns:yang:openflow:switch:connection:provider:impl"},{"name":"shutdown","revision":"2013-12-18","namespace":"urn:opendaylight:params:xml:ns:yang:controller:shutdown"},{"name":"shutdown-impl","revision":"2013-12-18","namespace":"urn:opendaylight:params:xml:ns:yang:controller:shutdown:impl"},{"name":"netty","revision":"2013-11-19","namespace":"urn:opendaylight:params:xml:ns:yang:controller:netty"},{"name":"netty-event-executor","revision":"2013-11-12","namespace":"urn:opendaylight:params:xml:ns:yang:controller:netty:eventexecutor"},{"name":"threadpool","revision":"2013-04-09","namespace":"urn:opendaylight:params:xml:ns:yang:controller:threadpool"},{"name":"netty-timer","revision":"2013-11-19","namespace":"urn:opendaylight:params:xml:ns:yang:controller:netty:timer"},{"name":"threadpool-impl-scheduled","revision":"2013-12-01","namespace":"urn:opendaylight:params:xml:ns:yang:controller:threadpool:impl:scheduled"},{"name":"threadpool-impl-fixed","revision":"2013-12-01","namespace":"urn:opendaylight:params:xml:ns:yang:controller:threadpool:impl:fixed"},{"name":"opendaylight-md-sal-dom","revision":"2013-10-28","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:dom"},{"name":"threadpool-impl","revision":"2013-04-05","namespace":"urn:opendaylight:params:xml:ns:yang:controller:threadpool:impl"},{"name":"threadpool-impl-flexible","revision":"2013-12-01","namespace":"urn:opendaylight:params:xml:ns:yang:controller:threadpool:impl:flexible"},{"name":"opendaylight-operational-dom-datastore","revision":"2014-06-17","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:core:spi:operational-dom-store"},{"name":"opendaylight-sal-binding-broker-impl","revision":"2013-10-28","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding:impl"},{"name":"statistics-manager","revision":"2014-09-25","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:statistics-manager"},{"name":"openflowjava-nx-api-config","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:openflowplugin:ofjava:nx:api:config"},{"name":"opendaylight-rest-connector","revision":"2014-07-24","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:rest:connector"},{"name":"threadgroup","revision":"2013-11-07","namespace":"urn:opendaylight:params:xml:ns:yang:controller:netty:threadgroup"},{"name":"ovs-nx-api-config","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:ovs:nx:api:config"},{"name":"ovs-nx-config","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:ovs:nx:config"},{"name":"openflow-provider","revision":"2014-03-26","namespace":"urn:opendaylight:params:xml:ns:yang:openflow:common:config"},{"name":"openflow-provider-impl","revision":"2014-03-26","namespace":"urn:opendaylight:params:xml:ns:yang:openflow:common:config:impl"},{"name":"nicira-extension-impl","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:openflowplugin:nx:config:impl"},{"name":"opendaylight-config-dom-datastore","revision":"2014-06-17","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:core:spi:config-dom-store"},{"name":"opendaylight-sal-dom-broker-impl","revision":"2013-10-28","namespace":"urn:opendaylight:params:xml:ns:yang:controller:md:sal:dom:impl"},{"name":"opendaylight-inmemory-datastore-provider","revision":"2014-06-17","namespace":"urn:opendaylight:params:xml:ns:yang:controller:inmemory-datastore-provider"},{"name":"opendaylight-port-statistics","revision":"2013-12-14","namespace":"urn:opendaylight:port:statistics"},{"name":"openflow-action","revision":"2013-07-31","namespace":"urn:opendaylight:openflow:common:action"},{"name":"nicira-action","revision":"2014-04-21","namespace":"urn:opendaylight:openflowjava:nx:action"},{"name":"ovs-nx-action","revision":"2014-04-21","namespace":"urn:opendaylight:ovs:nx:action"},{"name":"openflowjava-nx-config","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:openflowplugin:ofjava:nx:config"},{"name":"protocol-framework","revision":"2014-03-13","namespace":"urn:opendaylight:params:xml:ns:yang:controller:protocol:framework"},{"name":"ovs-nx-sal-cfg","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:controller:config:ovs:nx:sal:config"},{"name":"ovs-nx-sal-cfg-impl","revision":"2014-07-11","namespace":"urn:opendaylight:params:xml:ns:yang:ovs:nx:sal:config:impl"},{"name":"sal-meter","revision":"2013-09-18","namespace":"urn:opendaylight:meter:service"},{"name":"flow-topology-discovery","revision":"2013-08-19","namespace":"urn:opendaylight:flow:topology:discovery"},{"name":"openflow-extensible-match","revision":"2013-07-31","namespace":"urn:opendaylight:openflow:oxm"},{"name":"nicira-match","revision":"2014-04-21","namespace":"urn:opendaylight:openflowjava:nx:match"},{"name":"ovs-nx-match","revision":"2014-04-21","namespace":"urn:opendaylight:ovs:nx:match"},{"name":"openflow-protocol","revision":"2013-07-31","namespace":"urn:opendaylight:openflow:protocol"},{"name":"openflow-augments","revision":"2013-10-02","namespace":"urn:opendaylight:openflow:augments"},{"name":"opendaylight-queue-types","revision":"2013-09-25","namespace":"urn:opendaylight:flow:types:queue"},{"name":"sal-queue","revision":"2013-11-07","namespace":"urn:opendaylight:queue:service"},{"name":"opendaylight-port-types","revision":"2013-09-25","namespace":"urn:opendaylight:flow:types:port"},{"name":"sal-port","revision":"2013-11-07","namespace":"urn:opendaylight:port:service"},{"name":"opendaylight-l2-types","revision":"2013-08-27","namespace":"urn:opendaylight:l2:types"},{"name":"opendaylight-match-types","revision":"2013-10-26","namespace":"urn:opendaylight:model:match:types"},{"name":"opendaylight-action-types","revision":"2013-11-12","namespace":"urn:opendaylight:action:types"},{"name":"opendaylight-flow-types","revision":"2013-10-26","namespace":"urn:opendaylight:flow:types"},{"name":"opendaylight-group-types","revision":"2013-10-18","namespace":"urn:opendaylight:group:types"},{"name":"sal-flow","revision":"2013-08-19","namespace":"urn:opendaylight:flow:service"},{"name":"sal-group","revision":"2013-09-18","namespace":"urn:opendaylight:group:service"},{"name":"opendaylight-table-types","revision":"2013-10-26","namespace":"urn:opendaylight:table:types"},{"name":"sal-table","revision":"2013-10-26","namespace":"urn:opendaylight:table:service"},{"name":"packet-processing","revision":"2013-07-09","namespace":"urn:opendaylight:packet:service"},{"name":"flow-node-inventory","revision":"2013-08-19","namespace":"urn:opendaylight:flow:inventory"},{"name":"opendaylight-meter-statistics","revision":"2013-11-11","namespace":"urn:opendaylight:meter:statistics"},{"name":"opendaylight-group-statistics","revision":"2013-11-11","namespace":"urn:opendaylight:group:statistics"},{"name":"opendaylight-flow-statistics","revision":"2013-08-19","namespace":"urn:opendaylight:flow:statistics"},{"name":"openflowplugin-extension-general","revision":"2014-07-14","namespace":"urn:opendaylight:openflowplugin:extension:general"},{"name":"openflowplugin-extension-nicira-match","revision":"2014-07-14","namespace":"urn:opendaylight:openflowplugin:extension:nicira:match"},{"name":"openflowplugin-extension-nicira-action","revision":"2014-07-14","namespace":"urn:opendaylight:openflowplugin:extension:nicira:action"},{"name":"ovs-nx-sal-action","revision":"2014-07-14","namespace":"urn:opendaylight:ovs:nx:sal:action"},{"name":"ovs-nx-sal-match","revision":"2014-07-14","namespace":"urn:opendaylight:ovs:nx:sal:match"},{"name":"opendaylight-queue-statistics","revision":"2013-12-16","namespace":"urn:opendaylight:queue:statistics"},{"name":"opendaylight-flow-table-statistics","revision":"2013-12-15","namespace":"urn:opendaylight:flow:table:statistics"},{"name":"node-error","revision":"2014-04-10","namespace":"urn:opendaylight:node:error:service"}]}}</msg>
+<status status="PASS" endtime="20151002 07:08:24.334" starttime="20151002 07:08:24.332"></status>
+</kw>
+<kw name="Should Be Equal As Strings" library="BuiltIn">
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<arguments>
+<arg>${resp.status_code}</arg>
+<arg>200</arg>
+</arguments>
+<msg timestamp="20151002 07:08:24.335" level="INFO">Argument types are:
+&lt;type 'int'&gt;
+&lt;type 'unicode'&gt;</msg>
+<status status="PASS" endtime="20151002 07:08:24.336" starttime="20151002 07:08:24.334"></status>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<doc>Fails if ``item1`` does not contain ``item2`` one or more times.</doc>
+<arguments>
+<arg>${resp.content}</arg>
+<arg>ietf-restconf</arg>
+</arguments>
+<status status="PASS" endtime="20151002 07:08:24.337" starttime="20151002 07:08:24.336"></status>
+</kw>
+<doc>Get the controller modules via Restconf</doc>
+<status status="PASS" endtime="20151002 07:08:24.337" critical="yes" starttime="20151002 07:08:24.303"></status>
+</test>
+<kw type="teardown" name="Delete All Sessions" library="RequestsLibrary">
+<doc>Removes all the session objects</doc>
+<status status="PASS" endtime="20151002 07:08:24.339" starttime="20151002 07:08:24.339"></status>
+</kw>
+<doc>Test suite to verify Restconf is OK</doc>
+<status status="PASS" endtime="20151002 07:08:24.339" starttime="20151002 07:08:24.159"></status>
+</suite>
+<status status="PASS" endtime="20151002 07:08:24.341" starttime="20151002 07:08:24.125"></status>
+</suite>
+<statistics>
+<total>
+<stat fail="0" pass="1">Critical Tests</stat>
+<stat fail="0" pass="1">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat fail="0" id="s1" name="Basic" pass="1">Basic</stat>
+<stat fail="0" id="s1-s1" name="010 Restconf OK" pass="1">Basic.010 Restconf OK</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
