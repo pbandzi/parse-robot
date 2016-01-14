@@ -92,7 +92,7 @@ def main(argv):
     data['installer'] =  installer
 
     print(json.dumps(data, indent=2))
+    #send_results_to_mongo(data)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    #send_results_to_mongo('ahoj')
