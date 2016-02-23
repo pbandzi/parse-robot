@@ -77,8 +77,12 @@ def split_testcases(test_result):
             if len(long_list) == 1:
                 # flatten
                 parent[key] = {}
-                for single_list_key, single_list_value in long_list[0].iteritems():
-                    parent[key][single_list_key] = single_list_value
+                long_list_value = long_list[0]
+                if isinstance(long_list_value, dict):
+                    for single_list_key, single_list_value in long_list_value.iteritems():
+                        parent[key][single_list_key] = single_list_value
+                else:
+                    parent[key] = long_list_value
             elif len(long_list) > 1:
                 remaining_lists.append((parent, key))
 
@@ -117,17 +121,17 @@ def split_testcases(test_result):
 
     if len(remaining_lists) == 0:
         list_of_split_test_results.append(test_result)
+        # print json.dumps(test_result)
     else:
-        while len(remaining_lists) > 0:
-            remaining_list_parent, remaining_list_key = remaining_lists.pop(0)
-            # split entries into categories by looking at their dictionary keys
-            # only one category should contain more than one entry
-            # split this category and append the entries from other categories (somehow, if possible)
-            remaining_list = remaining_list_parent[remaining_list_key]
-            for remaining_list_entry in remaining_list:
-                remaining_list_parent[remaining_list_key] = remaining_list_entry
-                t = split_testcases(copy.deepcopy(test_result))
-                list_of_split_test_results.extend(t)
+        remaining_list_parent, remaining_list_key = remaining_lists.pop(0)
+        # split entries into categories by looking at their dictionary keys
+        # only one category should contain more than one entry
+        # split this category and append the entries from other categories (somehow, if possible)
+        remaining_list = remaining_list_parent[remaining_list_key]
+        for remaining_list_entry in remaining_list:
+            remaining_list_parent[remaining_list_key] = remaining_list_entry
+            t = split_testcases(copy.deepcopy(test_result))
+            list_of_split_test_results.extend(t)
 
     return list_of_split_test_results
 
@@ -153,4 +157,4 @@ if __name__ == '__main__':
         parsed_test_results.extend(new_test_results)
 
     for parsed_test_result in parsed_test_results:
-        print json.dumps(parsed_test_result)
+        print json.dumps(parsed_test_result, indent=2)
