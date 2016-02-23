@@ -46,6 +46,26 @@ def parse_suites(suites):
     return data
 
 
+def print_to_rst(data):
+    TAB_LINE = '{0:40} {1}'
+    TAB_EDGE = TAB_LINE.format('='*40, '='*6)
+
+    print('ODL Suite '+ data['description'])
+    print('----------' + '-'*len(data['description']))
+    print
+    print(':POD name: '+ data['pod_name'])
+    print(':Installer: '+ data['installer'])
+    print
+
+    print(TAB_EDGE)
+    print(TAB_LINE.format('Test Name', 'Status'))
+    print(TAB_EDGE)
+    for detail in data['details']:
+        print(TAB_LINE.format(detail['test_name'],detail['test_status']['@status']))
+
+    print(TAB_EDGE)
+
+
 def send_results_to_mongo(payload):
     """
     todo: send json results to mongodb
@@ -91,7 +111,8 @@ def main(argv):
     data['pod_name'] = pod
     data['installer'] =  installer
 
-    print(json.dumps(data, indent=2))
+    print_to_rst(data)
+    #print(json.dumps(data, indent=2))
     #send_results_to_mongo(data)
 
 if __name__ == "__main__":
