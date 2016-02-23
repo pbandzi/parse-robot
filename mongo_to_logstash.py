@@ -5,7 +5,7 @@ import json
 import uuid
 import copy
 
-logging.basicConfig(filename='/home/juraj/workspace/parse-robot/mongo2elk.log', format='%(asctime)s %(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename='/var/log/mongo2elk.log', format='%(asctime)s %(levelname)s: %(message)s', level=logging.DEBUG)
 
 conflicting_fiels = {'_id', '_type', '_index', '_score', '_source'}
 
