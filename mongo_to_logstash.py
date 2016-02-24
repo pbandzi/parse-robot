@@ -15,12 +15,21 @@ def rename_conflicting_fields(json_obj):
             if key in conflicting_fields:
                 # rename
                 prefix = 'mongo' + key
-                new_key = 'mongo' + key
+                new_key = prefix
                 while new_key in json_obj:
                     new_key = prefix + str(uuid.uuid4())
 
                 json_obj[new_key] = value
                 del json_obj[key]
+            elif '.' in key:
+                prefix = key.replace('.', ':')
+                new_key = prefix
+                while new_key in json_obj:
+                    new_key = prefix + str(uuid.uuid4())
+
+                json_obj[new_key] = value
+                del json_obj[key]
+
             rename_conflicting_fields(value)
     elif isinstance(json_obj, list):
         for json_section in json_obj:
@@ -165,8 +174,5 @@ if __name__ == '__main__':
         new_test_results = split_testcases(test_result)
         parsed_test_results.extend(new_test_results)
 
-    i = 1
     for parsed_test_result in parsed_test_results:
         print json.dumps(parsed_test_result)
-        print "\nPARSED TEST RESULTS NUMBER {}\n".format(i)
-        i += 1
