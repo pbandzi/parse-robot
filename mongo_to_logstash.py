@@ -55,6 +55,47 @@ def analyze_testcases(test_results_section):
     logging.info('')
 
 
+def _process_lists(parent, child_key):
+    # leave 0 length lists, flatten 1 length lists and process >2 length lists
+    processed_list = parent[child_key]
+    if len(processed_list) == 1:
+        # flatten
+        parent[child_key] = {}
+        processed_list_value = processed_list[0]
+        if isinstance(processed_list_value, dict):
+            # move one level up
+            for single_list_key, single_list_value in processed_list_value.iteritems():
+                parent[child_key][single_list_key] = single_list_value
+        else:
+            # either a list or string
+            parent[child_key] = processed_list_value
+
+
+def _get_list_from_children(parent, child_key):
+    processed_child = parent[child_key]
+    if isinstance(processed_child, dict):
+        for key, value in processed_child.iteritems():
+            returned_list = _get_list_from_children(processed_child, key)
+            if returned_list is not None:
+                return returned_list
+    elif isinstance(processed_child, list):
+        if len(processed_child) < 2:
+            _process_lists(parent, child_key)
+        else:
+            return parent, child_key
+
+
+def _shallow_dict_copy(dictionary):
+    if isinstance(dictionary, dict):
+        copied_dict = copy.copy(dictionary)
+        for key, value in copied_dict.iteritems():
+            copied_dict[key] = _shallow_dict_copy(value)
+    else:
+        copied_dict = dictionary
+
+    return copied_dict
+
+
 def split_testcases(test_result):
     """
     1. search for all lists in test_result
@@ -64,34 +105,6 @@ def split_testcases(test_result):
     :param test_result: json object
     :return:
     """
-    def process_lists(parent, child_key):
-        # leave 0 length lists, flatten 1 length lists and process >2 length lists
-        processed_list = parent[child_key]
-        if len(processed_list) == 1:
-            # flatten
-            parent[child_key] = {}
-            processed_list_value = processed_list[0]
-            if isinstance(processed_list_value, dict):
-                # move one level up
-                for single_list_key, single_list_value in processed_list_value.iteritems():
-                    parent[child_key][single_list_key] = single_list_value
-            else:
-                # either a list or string
-                parent[child_key] = processed_list_value
-
-    def get_list_from_children(parent, child_key):
-        processed_child = parent[child_key]
-        if isinstance(processed_child, dict):
-            for key, value in processed_child.iteritems():
-                returned_list = get_list_from_children(processed_child, key)
-                if returned_list is not None:
-                    return returned_list
-        elif isinstance(processed_child, list):
-            if len(processed_child) < 2:
-                process_lists(parent, child_key)
-            else:
-                return parent, child_key
-
     # def split_list_into_categories(list_of_dictionaries):
     #     # return a list of lists of dictionaries, each list represents one category
     #     categories = []
@@ -112,10 +125,10 @@ def split_testcases(test_result):
     #     return categories
 
     list_of_split_test_results = []
-    remaining_list = get_list_from_children(test_result, 'details')
+    remaining_list = _get_list_from_children(test_result, 'details')
     if remaining_list is None:
         # no lists that need splitting were found
-        list_of_split_test_results.append(copy.deepcopy(test_result))
+        list_of_split_test_results.append(_shallow_dict_copy(test_result))
     else:
         # this list of tuples contains parents with child lists with length > 1
         (remaining_list_parent, remaining_list_key) = remaining_list
