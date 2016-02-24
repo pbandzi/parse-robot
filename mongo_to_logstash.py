@@ -115,7 +115,7 @@ def split_testcases(test_result):
     remaining_list = get_list_from_children(test_result, 'details')
     if remaining_list is None:
         # no lists that need splitting were found
-        list_of_split_test_results.append(test_result)
+        list_of_split_test_results.append(copy.deepcopy(test_result))
     else:
         # this list of tuples contains parents with child lists with length > 1
         (remaining_list_parent, remaining_list_key) = remaining_list
@@ -125,7 +125,7 @@ def split_testcases(test_result):
         remaining_list = remaining_list_parent[remaining_list_key]
         for remaining_list_entry in remaining_list:
             remaining_list_parent[remaining_list_key] = remaining_list_entry
-            t = split_testcases(copy.deepcopy(test_result))
+            t = split_testcases(test_result)
             list_of_split_test_results.extend(t)
 
     return list_of_split_test_results
@@ -152,5 +152,8 @@ if __name__ == '__main__':
         new_test_results = split_testcases(test_result)
         parsed_test_results.extend(new_test_results)
 
+    i = 1
     for parsed_test_result in parsed_test_results:
         print json.dumps(parsed_test_result)
+        print "\nPARSED TEST RESULTS NUMBER {}\n".format(i)
+        i += 1
