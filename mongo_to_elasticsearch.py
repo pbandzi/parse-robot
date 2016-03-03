@@ -4,6 +4,12 @@ import argparse
 import json
 import urllib3
 
+logger = logging.getLogger('mongo_to_elasticsearch')
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler('/var/log/mongo2elastic.log')
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+logger.addHandler(file_handler)
+
 
 def _get_dicts_from_list(dict_list, keys):
     dicts = []
@@ -61,7 +67,7 @@ def modify_functest_vims(testcase):
     sig_test_results = _get_dicts_from_list(testcase_details['sig_test']['result'],
                                             {'duration', 'result', 'name', 'error'})
     if len(sig_test_results) < 1:
-        logging.info("No 'result' from 'sig_test' found in vIMS details, skipping")
+        logger.info("No 'result' from 'sig_test' found in vIMS details, skipping")
         return False
     else:
         test_results = _get_results_from_list_of_dicts(sig_test_results, ('result',), ('Passed', 'Skipped', 'Failed'))
@@ -112,10 +118,10 @@ def modify_functest_onos(testcase):
     funcvirnetl3_statuses = _get_dicts_from_list(funcvirnetl3_details, {'Case result', 'Case name:'})
 
     if len(funcvirnet_statuses) < 0:
-        logging.info("No results found in 'FUNCvirNet' part of ONOS results")
+        logger.info("No results found in 'FUNCvirNet' part of ONOS results")
         return False
     elif len(funcvirnetl3_statuses) < 0:
-        logging.info("No results found in 'FUNCvirNetL3' part of ONOS results")
+        logger.info("No results found in 'FUNCvirNetL3' part of ONOS results")
         return False
     else:
         funcvirnet_results = _get_results_from_list_of_dicts(funcvirnet_statuses,
@@ -161,7 +167,7 @@ def modify_functest_rally(testcase):
     summaries = _get_dicts_from_list(testcase['details'], {'summary'})
 
     if len(summaries) != 1:
-        logging.info("Found zero or more than one 'summaries' in Rally details, skipping")
+        logger.info("Found zero or more than one 'summaries' in Rally details, skipping")
         return False
     else:
         summary = summaries[0]['summary']
@@ -185,7 +191,7 @@ def modify_functest_odl(testcase):
     """
     test_statuses = _get_dicts_from_list(testcase['details']['details'], {'test_status', 'test_doc', 'test_name'})
     if len(test_statuses) < 1:
-        logging.info("No 'test_status' found in ODL details, skipping")
+        logger.info("No 'test_status' found in ODL details, skipping")
         return False
     else:
         test_results = _get_results_from_list_of_dicts(test_statuses, ('test_status', '@status'), ('PASS', 'FAIL'))
@@ -258,16 +264,16 @@ def verify_mongo_entry(testcase):
         if key in mandatory_fields:
             if value is None:
                 # empty mandatory field, invalid input
-                logging.info("Skipping testcase with mongo _id '{}' because the testcase was missing value"
-                             " for mandatory field '{}'".format(mongo_id, key))
+                logger.info("Skipping testcase with mongo _id '{}' because the testcase was missing value"
+                            " for mandatory field '{}'".format(mongo_id, key))
                 return False
             else:
                 mandatory_fields.remove(key)
         elif key in mandatory_fields_to_modify:
             if value is None:
                 # empty mandatory field, invalid input
-                logging.info("Skipping testcase with mongo _id '{}' because the testcase was missing value"
-                             " for mandatory field '{}'".format(mongo_id, key))
+                logger.info("Skipping testcase with mongo _id '{}' because the testcase was missing value"
+                            " for mandatory field '{}'".format(mongo_id, key))
                 return False
             else:
                 testcase[key] = mandatory_fields_to_modify[key](value)
@@ -283,8 +289,8 @@ def verify_mongo_entry(testcase):
 
     if len(mandatory_fields) > 0:
         # some mandatory fields are missing
-        logging.info("Skipping testcase with mongo _id '{}' because the testcase was missing"
-                     " mandatory field(s) '{}'".format(mongo_id, mandatory_fields))
+        logger.info("Skipping testcase with mongo _id '{}' because the testcase was missing"
+                    " mandatory field(s) '{}'".format(mongo_id, mandatory_fields))
         return False
     else:
         return True
@@ -313,8 +319,6 @@ def modify_mongo_entry(testcase):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='/var/log/mongo2elastic.log', format='%(asctime)s %(levelname)s: %(message)s',
-                        level=logging.DEBUG)
     parser = argparse.ArgumentParser(description='Modify and filter mongo json data for elasticsearch')
     parser.add_argument('input',
                         help='Input json file to modify')
@@ -339,7 +343,9 @@ if __name__ == '__main__':
             # if the modification could be applied, append the modified result
             parsed_test_results.append(test_result)
 
-    http = urllib3.PoolManager()
+    logger.info('number of parsed test results: {}'.format(len(parsed_test_results)))
+
+    http = urllib3.PoolManager() if output_destination == 'elasticsearch' else None
     for parsed_test_result in parsed_test_results:
         json_dump = json.dumps(parsed_test_result)
         if output_destination == 'stdout':
