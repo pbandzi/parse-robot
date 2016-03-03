@@ -34,6 +34,12 @@ def _get_results_from_list_of_dicts(list_of_dict_statuses, dict_indexes, expecte
     return test_results
 
 
+def _convert_duration(duration_string):
+    hours, minutes, seconds = duration_string.split(":")
+    int_duration = 3600 * int(hours) + 60 * int(minutes) + float(seconds)
+    return int_duration
+
+
 def modify_functest_vims(testcase):
     """
     Structure:
@@ -126,13 +132,13 @@ def modify_functest_onos(testcase):
         funcvirnetl3_all = funcvirnetl3_passed + funcvirnetl3_failed
 
         testcase_details['FUNCvirNet'] = {
-            'duration': testcase_details['FUNCvirNet']['duration'],
+            'duration': _convert_duration(testcase_details['FUNCvirNet']['duration']),
             'tests': funcvirnet_all,
             'failures': funcvirnet_failed
         }
 
         testcase_details['FUNCvirNetL3'] = {
-            'duration': testcase_details['FUNCvirNetL3']['duration'],
+            'duration': _convert_duration(testcase_details['FUNCvirNetL3']['duration']),
             'tests': funcvirnetl3_all,
             'failures': funcvirnetl3_failed
         }
@@ -208,11 +214,13 @@ def modify_default_entry(testcase):
     found = False
     testcase_details = testcase['details']
     fields = ['duration', 'tests', 'failures']
-    for key, value in testcase_details.items():
-        if key in fields:
-            found = True
-        else:
-            del testcase_details[key]
+    if isinstance(testcase_details, dict):
+        for key, value in testcase_details.items():
+            if key in fields:
+                found = True
+            else:
+                del testcase_details[key]
+
     return found
 
 
