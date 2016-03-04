@@ -3,6 +3,7 @@ import logging
 import argparse
 import json
 import urllib3
+import urlparse
 
 logger = logging.getLogger('mongo_to_elasticsearch')
 logger.setLevel(logging.DEBUG)
@@ -318,37 +319,91 @@ def modify_mongo_entry(testcase):
         return False
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Modify and filter mongo json data for elasticsearch')
-    parser.add_argument('input',
-                        help='Input json file to modify')
+def get_mongo_data(mongo_url, days, http):
+    mongo_json = json.loads(http.request('GET', urlparse.urljoin(mongo_url, '?period={}'.format(days))).data)
 
-    parser.add_argument('-od', '--output_destination',
-                        default='elasticsearch',
-                        help='Supported destinations are stdout and elasticsearch, defaults to elasticsearch')
-
-    args = parser.parse_args()
-    input_json_path = args.input
-    output_destination = args.output_destination
-
-    with open(input_json_path) as input_json_fdesc:
-        input_json = json.load(input_json_fdesc)
-
-    test_results_section = input_json['test_results']
-
-    parsed_test_results = []
-
-    for test_result in test_results_section:
+    mongo_data = []
+    for test_result in mongo_json['test_results']:
         if modify_mongo_entry(test_result):
             # if the modification could be applied, append the modified result
-            parsed_test_results.append(test_result)
+            mongo_data.append(test_result)
+    return mongo_data
+
+
+def get_elastic_data(elastic_url, days, http):
+    body = '''{{
+    "query" : {{
+        "range" : {{
+            "creation_date" : {{
+                "gte" : "now-{}d"
+            }}
+        }}
+    }}
+}}'''.format(days)
+
+    # 1. get the number of results
+    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size=1', body=body).data)
+    nr_of_hits = elastic_json['hits']['total']
+
+    # 2. get all results
+    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size={}'.format(nr_of_hits), body=body).data)
+
+    elastic_data = []
+    for hit in elastic_json['hits']['hits']:
+        elastic_data.append(hit['_source'])
+    return elastic_data
+
+
+def get_difference(mongo_data, elastic_data):
+    for elastic_entry in elastic_data:
+        if elastic_entry in mongo_data:
+            mongo_data.remove(elastic_entry)
+    return mongo_data
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Modify and filter mongo json data for elasticsearch')
+    parser.add_argument('-od', '--output-destination',
+                        default='elasticsearch',
+                        choices=('elasticsearch', 'stdout'),
+                        help='defaults to elasticsearch')
+
+    parser.add_argument('-u', '--update', default=0, type=int, metavar='N',
+                        help='get entries old at most N days from mongodb and'
+                             ' parse those that are not already in elasticsearch.'
+                             ' If not present, will get everything from mongodb, which is the default')
+
+    parser.add_argument('-e', '--elasticsearch-url', default='http://localhost:9200',
+                        help='the url of elasticsearch, defaults to http://localhost:9200')
+
+    parser.add_argument('-m', '--mongodb-url', default='http://localhost:8082',
+                        help='the url of mongodb, defaults to http://localhost:8082')
+
+    args = parser.parse_args()
+    base_elastic_url = urlparse.urljoin(args.elasticsearch_url, '/test_results/mongo2elastic')
+    base_mongodb_url = urlparse.urljoin(args.mongodb_url, '/results')
+    output_destination = args.output_destination
+    update = args.update
+
+    http = urllib3.PoolManager()
+
+    # parsed_test_results will be printed/sent to elasticsearch
+    parsed_test_results = []
+    if update == 0:
+        # TODO get everything from mongo
+        pass
+    elif update > 0:
+        elastic_data = get_elastic_data(base_elastic_url, update, http)
+        mongo_data = get_mongo_data(base_mongodb_url, update, http)
+        parsed_test_results = get_difference(mongo_data, elastic_data)
+    else:
+        raise Exception('Update must be non-negative')
 
     logger.info('number of parsed test results: {}'.format(len(parsed_test_results)))
 
-    http = urllib3.PoolManager() if output_destination == 'elasticsearch' else None
     for parsed_test_result in parsed_test_results:
         json_dump = json.dumps(parsed_test_result)
         if output_destination == 'stdout':
             print json_dump
         else:
-            http.request('POST', 'http://localhost:9200/test_results/mongo2elastic/', body=json_dump)
+            http.request('POST', base_elastic_url, body=json_dump)
