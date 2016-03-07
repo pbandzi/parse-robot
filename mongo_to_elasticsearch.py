@@ -14,7 +14,6 @@ logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler('/var/log/mongo2elastic.log')
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 logger.addHandler(file_handler)
-http = None
 
 
 def _get_dicts_from_list(dict_list, keys):
@@ -360,7 +359,7 @@ def publish_mongo_data(output_destination):
 def get_mongo_data(mongo_url, days):
     past_time = datetime.datetime.today() - datetime.timedelta(days=days)
     mongo_json_lines = subprocess.check_output(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results',
-                                                '--query', """'{{"creation_date":{{$gt:"{}"}}}}'"""
+                                                '--query', '{{"creation_date":{{$gt:"{}"}}}}'
                                                .format(past_time)]).splitlines()
 
     mongo_data = []
@@ -431,7 +430,6 @@ if __name__ == '__main__':
     output_destination = args.output_destination
     update = args.update
 
-    global http
     http = urllib3.PoolManager()
 
     # parsed_test_results will be printed/sent to elasticsearch
