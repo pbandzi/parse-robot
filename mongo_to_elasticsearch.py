@@ -4,12 +4,17 @@ import argparse
 import json
 import urllib3
 import urlparse
+import uuid
+import os
+import subprocess
+import datetime
 
 logger = logging.getLogger('mongo_to_elasticsearch')
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler('/var/log/mongo2elastic.log')
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 logger.addHandler(file_handler)
+http = None
 
 
 def _get_dicts_from_list(dict_list, keys):
@@ -42,8 +47,11 @@ def _get_results_from_list_of_dicts(list_of_dict_statuses, dict_indexes, expecte
 
 
 def _convert_duration(duration_string):
-    hours, minutes, seconds = duration_string.split(":")
-    int_duration = 3600 * int(hours) + 60 * int(minutes) + float(seconds)
+    if ':' in duration_string:
+        hours, minutes, seconds = duration_string.split(":")
+        int_duration = 3600 * int(hours) + 60 * int(minutes) + float(seconds)
+    else:
+        int_duration = duration_string
     return int_duration
 
 
@@ -231,6 +239,13 @@ def modify_default_entry(testcase):
     return found
 
 
+def _fix_date(date_string):
+    if isinstance(date_string, dict):
+        return date_string['$date']
+    else:
+        return date_string[:-3].replace(' ', 'T') + 'Z'
+
+
 def verify_mongo_entry(testcase):
     """
     Mandatory fields:
@@ -255,7 +270,7 @@ def verify_mongo_entry(testcase):
                         'case_name',
                         'project_name',
                         'details']
-    mandatory_fields_to_modify = {'creation_date': lambda x: x.replace(' ', 'T')}
+    mandatory_fields_to_modify = {'creation_date': _fix_date}
     if '_id' in testcase:
         mongo_id = testcase['_id']
     else:
@@ -319,18 +334,45 @@ def modify_mongo_entry(testcase):
         return False
 
 
-def get_mongo_data(mongo_url, days, http):
-    mongo_json = json.loads(http.request('GET', urlparse.urljoin(mongo_url, '?period={}'.format(days))).data)
+def publish_test_result(test_result, output_destination):
+    json_dump = json.dumps(test_result)
+    if output_destination == 'stdout':
+        print json_dump
+    else:
+        http.request('POST', base_elastic_url, body=json_dump)
+
+
+def publish_mongo_data(output_destination):
+    tmp_filename = 'mongo-{}.log'.format(uuid.uuid4())
+    try:
+        subprocess.check_call(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results', '--out',
+                               tmp_filename])
+        with open(tmp_filename) as fobj:
+            for mongo_json_line in fobj:
+                test_result = json.loads(mongo_json_line)
+                if modify_mongo_entry(test_result):
+                    publish_test_result(test_result, output_destination)
+    finally:
+        if os.path.exists(tmp_filename):
+            os.remove(tmp_filename)
+
+
+def get_mongo_data(mongo_url, days):
+    past_time = datetime.datetime.today() - datetime.timedelta(days=days)
+    mongo_json_lines = subprocess.check_output(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results',
+                                                '--query', """'{{"creation_date":{{$gt:"{}"}}}}'"""
+                                               .format(past_time)]).splitlines()
 
     mongo_data = []
-    for test_result in mongo_json['test_results']:
+    for mongo_json_line in mongo_json_lines:
+        test_result = json.loads(mongo_json_line)
         if modify_mongo_entry(test_result):
             # if the modification could be applied, append the modified result
             mongo_data.append(test_result)
     return mongo_data
 
 
-def get_elastic_data(elastic_url, days, http):
+def get_elastic_data(elastic_url, days):
     body = '''{{
     "query" : {{
         "range" : {{
@@ -354,11 +396,15 @@ def get_elastic_data(elastic_url, days, http):
     return elastic_data
 
 
-def get_difference(mongo_data, elastic_data):
+def publish_difference(mongo_data, elastic_data, output_destination):
     for elastic_entry in elastic_data:
         if elastic_entry in mongo_data:
             mongo_data.remove(elastic_entry)
-    return mongo_data
+
+    logger.info('number of parsed test results: {}'.format(len(mongo_data)))
+
+    for parsed_test_result in mongo_data:
+        publish_test_result(parsed_test_result, output_destination)
 
 
 if __name__ == '__main__':
@@ -385,25 +431,16 @@ if __name__ == '__main__':
     output_destination = args.output_destination
     update = args.update
 
+    global http
     http = urllib3.PoolManager()
 
     # parsed_test_results will be printed/sent to elasticsearch
-    parsed_test_results = []
     if update == 0:
         # TODO get everything from mongo
-        pass
+        publish_mongo_data(output_destination)
     elif update > 0:
-        elastic_data = get_elastic_data(base_elastic_url, update, http)
-        mongo_data = get_mongo_data(base_mongodb_url, update, http)
-        parsed_test_results = get_difference(mongo_data, elastic_data)
+        elastic_data = get_elastic_data(base_elastic_url, update)
+        mongo_data = get_mongo_data(base_mongodb_url, update)
+        publish_difference(mongo_data, elastic_data, output_destination)
     else:
         raise Exception('Update must be non-negative')
-
-    logger.info('number of parsed test results: {}'.format(len(parsed_test_results)))
-
-    for parsed_test_result in parsed_test_results:
-        json_dump = json.dumps(parsed_test_result)
-        if output_destination == 'stdout':
-            print json_dump
-        else:
-            http.request('POST', base_elastic_url, body=json_dump)
