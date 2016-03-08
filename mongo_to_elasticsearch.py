@@ -232,6 +232,8 @@ def modify_default_entry(testcase):
         for key, value in testcase_details.items():
             if key in fields:
                 found = True
+                if key == 'duration':
+                    testcase_details[key] = _convert_duration(value)
             else:
                 del testcase_details[key]
 
@@ -333,7 +335,7 @@ def modify_mongo_entry(testcase):
         return False
 
 
-def publish_test_result(test_result, output_destination):
+def publish_test_result(test_result, output_destination, base_elastic_url):
     json_dump = json.dumps(test_result)
     if output_destination == 'stdout':
         print json_dump
@@ -341,7 +343,7 @@ def publish_test_result(test_result, output_destination):
         http.request('POST', base_elastic_url, body=json_dump)
 
 
-def publish_mongo_data(output_destination):
+def publish_mongo_data(output_destination, base_elastic_url):
     tmp_filename = 'mongo-{}.log'.format(uuid.uuid4())
     try:
         subprocess.check_call(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results', '--out',
@@ -350,13 +352,13 @@ def publish_mongo_data(output_destination):
             for mongo_json_line in fobj:
                 test_result = json.loads(mongo_json_line)
                 if modify_mongo_entry(test_result):
-                    publish_test_result(test_result, output_destination)
+                    publish_test_result(test_result, output_destination, base_elastic_url)
     finally:
         if os.path.exists(tmp_filename):
             os.remove(tmp_filename)
 
 
-def get_mongo_data(mongo_url, days):
+def get_mongo_data(days):
     past_time = datetime.datetime.today() - datetime.timedelta(days=days)
     mongo_json_lines = subprocess.check_output(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results',
                                                 '--query', '{{"creation_date":{{$gt:"{}"}}}}'
@@ -395,7 +397,7 @@ def get_elastic_data(elastic_url, days):
     return elastic_data
 
 
-def publish_difference(mongo_data, elastic_data, output_destination):
+def publish_difference(mongo_data, elastic_data, output_destination, base_elastic_url):
     for elastic_entry in elastic_data:
         if elastic_entry in mongo_data:
             mongo_data.remove(elastic_entry)
@@ -403,7 +405,7 @@ def publish_difference(mongo_data, elastic_data, output_destination):
     logger.info('number of parsed test results: {}'.format(len(mongo_data)))
 
     for parsed_test_result in mongo_data:
-        publish_test_result(parsed_test_result, output_destination)
+        publish_test_result(parsed_test_result, output_destination, base_elastic_url)
 
 
 if __name__ == '__main__':
@@ -426,7 +428,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     base_elastic_url = urlparse.urljoin(args.elasticsearch_url, '/test_results/mongo2elastic')
-    base_mongodb_url = urlparse.urljoin(args.mongodb_url, '/results')
     output_destination = args.output_destination
     update = args.update
 
@@ -435,10 +436,10 @@ if __name__ == '__main__':
     # parsed_test_results will be printed/sent to elasticsearch
     if update == 0:
         # TODO get everything from mongo
-        publish_mongo_data(output_destination)
+        publish_mongo_data(output_destination, base_elastic_url)
     elif update > 0:
         elastic_data = get_elastic_data(base_elastic_url, update)
-        mongo_data = get_mongo_data(base_mongodb_url, update)
-        publish_difference(mongo_data, elastic_data, output_destination)
+        mongo_data = get_mongo_data(update)
+        publish_difference(mongo_data, elastic_data, output_destination, base_elastic_url)
     else:
         raise Exception('Update must be non-negative')
