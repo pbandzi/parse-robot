@@ -385,8 +385,9 @@ def get_elastic_data(elastic_url, days):
 }}'''.format(days)
 
     # 1. get the number of results
-    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size=1', body=body).data)
+    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size=0', body=body).data)
     nr_of_hits = elastic_json['hits']['total']
+    logger.info('number of hits in elasticsearch for now-{}d: {}'.format(days, nr_of_hits))
 
     # 2. get all results
     elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size={}'.format(nr_of_hits), body=body).data)
