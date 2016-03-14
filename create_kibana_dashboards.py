@@ -240,7 +240,7 @@ class KibanaSearchSourceJSON(dict):
             {"match": {"version": {"query": version, "type": "phrase"}}}
         ]
         if pod != 'all':
-            self["filter"].append({"match": {"pod": {"query": pod, "type": "phrase"}}})
+            self["filter"].append({"match": {"pod_name": {"query": pod, "type": "phrase"}}})
 
 
 class VisualizationState(dict):
