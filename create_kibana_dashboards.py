@@ -69,16 +69,17 @@ _testcases = [
              "type": "histogram",
          },
 
-         {
-             "metrics": [
-                 {
-                     "type": "avg",
-                     "params": {
-                         "field": "details.duration"
-                     }
-                 }
-             ]
-         }
+         # add for success rate
+         # {
+         #     "metrics": [
+         #         {
+         #             "type": "avg",
+         #             "params": {
+         #                 "field": "details.duration"
+         #             }
+         #         }
+         #     ]
+         # }
      ]
      ),
 
@@ -181,9 +182,10 @@ class KibanaDashboard(dict):
         self.id = self['title'].replace(' ', '-')
 
         self['hits'] = 0
-        self['description'] = "Kibana dashboard for project_name '{}', case_name '{}', data '{}' and" \
+        self['description'] = "Kibana dashboard for project_name '{}', case_name '{}', installer '{}', data '{}' and" \
                               " pod '{}'".format(self.project_name,
                                                  self.case_name,
+                                                 self.installer,
                                                  self._visualization_title,
                                                  self.pod)
         self['panelsJSON'] = self._construct_panels()
@@ -454,40 +456,14 @@ def construct_dashboards():
 
 
 if __name__ == '__main__':
-    jozko = KibanaVisualization('functest',
-                                'Tempest',
-                                'fuel',
-                                'all',
-                                'os-nosdn-nofeature-ha',
-                                {
-                                    "metrics": [
-                                        {
-                                            "type": "sum",
-                                            "params": {
-                                                "field": "details.tests"
-                                            }
-                                        },
-                                        {
-                                            "type": "sum",
-                                            "params": {
-                                                "field": "details.failures"
-                                            }
-                                        }
-                                    ],
-                                    "type": "histogram",
-                                })
-    print json.dumps(jozko)
-
     parser = argparse.ArgumentParser(description='Create Kibana dashboards from data in elasticsearch')
     parser.add_argument('-e', '--elasticsearch-url', default='http://localhost:9200',
                         help='the url of elasticsearch, defaults to http://localhost:9200')
 
     args = parser.parse_args()
-    # base_elastic_url = args.elasticsearch_url
-    base_elastic_url = 'stdout'
+    base_elastic_url = args.elasticsearch_url
 
     dashboards = construct_dashboards()
 
     for kibana_dashboard in dashboards:
-        # kibana_dashboard.publish()
-        print json.dumps(kibana_dashboard)
+        kibana_dashboard.publish()
