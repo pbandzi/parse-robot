@@ -9,7 +9,7 @@ import os
 import subprocess
 import datetime
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('mongo_to_elasticsearch')
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler('/var/log/{}.log'.format(__name__))
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
