@@ -217,7 +217,7 @@ class KibanaDashboard(dict):
                                   urlparse.urljoin(base_elastic_url,
                                                    '/.kibana/dashboard/{}'.format(self.id)))
 
-    def publish_dashboard(self):
+    def publish(self):
         self._publish_visualizations()
         self._publish()
 
