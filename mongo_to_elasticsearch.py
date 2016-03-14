@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 import logging
 import argparse
+import shared_utils
 import json
-import urllib3
 import urlparse
 import uuid
 import os
 import subprocess
 import datetime
 
-logger = logging.getLogger('mongo_to_elasticsearch')
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler('/var/log/mongo2elastic.log')
+file_handler = logging.FileHandler('/var/log/{}.log'.format(__name__))
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 logger.addHandler(file_handler)
 
@@ -335,15 +335,7 @@ def modify_mongo_entry(testcase):
         return False
 
 
-def publish_test_result(test_result, output_destination, base_elastic_url):
-    json_dump = json.dumps(test_result)
-    if output_destination == 'stdout':
-        print json_dump
-    else:
-        http.request('POST', base_elastic_url, body=json_dump)
-
-
-def publish_mongo_data(output_destination, base_elastic_url):
+def publish_mongo_data(output_destination):
     tmp_filename = 'mongo-{}.log'.format(uuid.uuid4())
     try:
         subprocess.check_call(['mongoexport', '--db', 'test_results_collection', '-c', 'test_results', '--out',
@@ -352,7 +344,7 @@ def publish_mongo_data(output_destination, base_elastic_url):
             for mongo_json_line in fobj:
                 test_result = json.loads(mongo_json_line)
                 if modify_mongo_entry(test_result):
-                    publish_test_result(test_result, output_destination, base_elastic_url)
+                    shared_utils.publish_json(test_result, output_destination)
     finally:
         if os.path.exists(tmp_filename):
             os.remove(tmp_filename)
@@ -373,32 +365,7 @@ def get_mongo_data(days):
     return mongo_data
 
 
-def get_elastic_data(elastic_url, days):
-    body = '''{{
-    "query" : {{
-        "range" : {{
-            "creation_date" : {{
-                "gte" : "now-{}d"
-            }}
-        }}
-    }}
-}}'''.format(days)
-
-    # 1. get the number of results
-    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size=0', body=body).data)
-    nr_of_hits = elastic_json['hits']['total']
-    logger.info('number of hits in elasticsearch for now-{}d: {}'.format(days, nr_of_hits))
-
-    # 2. get all results
-    elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size={}'.format(nr_of_hits), body=body).data)
-
-    elastic_data = []
-    for hit in elastic_json['hits']['hits']:
-        elastic_data.append(hit['_source'])
-    return elastic_data
-
-
-def publish_difference(mongo_data, elastic_data, output_destination, base_elastic_url):
+def publish_difference(mongo_data, elastic_data, output_destination):
     for elastic_entry in elastic_data:
         if elastic_entry in mongo_data:
             mongo_data.remove(elastic_entry)
@@ -406,7 +373,7 @@ def publish_difference(mongo_data, elastic_data, output_destination, base_elasti
     logger.info('number of parsed test results: {}'.format(len(mongo_data)))
 
     for parsed_test_result in mongo_data:
-        publish_test_result(parsed_test_result, output_destination, base_elastic_url)
+        shared_utils.publish_json(parsed_test_result, output_destination)
 
 
 if __name__ == '__main__':
@@ -430,17 +397,28 @@ if __name__ == '__main__':
     args = parser.parse_args()
     base_elastic_url = urlparse.urljoin(args.elasticsearch_url, '/test_results/mongo2elastic')
     output_destination = args.output_destination
-    update = args.update
+    days = args.update
 
-    http = urllib3.PoolManager()
+    if output_destination == 'elasticsearch':
+        output_destination = base_elastic_url
 
     # parsed_test_results will be printed/sent to elasticsearch
-    if update == 0:
+    if days == 0:
         # TODO get everything from mongo
-        publish_mongo_data(output_destination, base_elastic_url)
-    elif update > 0:
-        elastic_data = get_elastic_data(base_elastic_url, update)
-        mongo_data = get_mongo_data(update)
-        publish_difference(mongo_data, elastic_data, output_destination, base_elastic_url)
+        publish_mongo_data(output_destination)
+    elif days > 0:
+        body = '''{{
+    "query" : {{
+        "range" : {{
+            "creation_date" : {{
+                "gte" : "now-{}d"
+            }}
+        }}
+    }}
+}}'''.format(days)
+        elastic_data = shared_utils.get_elastic_data(base_elastic_url, body)
+        logger.info('number of hits in elasticsearch for now-{}d: {}'.format(days, len(elastic_data)))
+        mongo_data = get_mongo_data(days)
+        publish_difference(mongo_data, elastic_data, output_destination)
     else:
         raise Exception('Update must be non-negative')
