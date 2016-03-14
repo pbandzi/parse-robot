@@ -179,7 +179,7 @@ class KibanaDashboard(dict):
                                              self.case_name,
                                              self._visualization_title,
                                              self.pod)
-        self.id = self['title'].replace(' ', '-')
+        self.id = self['title'].replace(' ', '-').replace('/', '-')
 
         self['hits'] = 0
         self['description'] = "Kibana dashboard for project_name '{}', case_name '{}', installer '{}', data '{}' and" \
@@ -380,7 +380,7 @@ class KibanaVisualization(dict):
                                                    installer,
                                                    pod,
                                                    version)
-        self.id = self['title'].replace(' ', '-')
+        self.id = self['title'].replace(' ', '-').replace('/', '-')
         self['visState'] = json.dumps(vis_state, separators=(',', ':'))
         self['uiStateJSON'] = "{}"
         self['description'] = "Kibana visualization for project_name '{}', case_name '{}', data '{}', installer '{}'," \
