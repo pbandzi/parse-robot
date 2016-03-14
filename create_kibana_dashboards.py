@@ -145,9 +145,9 @@ class KibanaDashboard(dict):
 
     def _publish_visualizations(self):
         for visualization in self._kibana_visualizations:
-            shared_utils.publish_json(json.dumps(visualization),
-                                      urlparse.urljoin(base_elastic_url,
-                                                       '/.kibana/visualization/{}'.format(visualization.id)))
+            url = urlparse.urljoin(base_elastic_url, '/.kibana/visualization/{}'.format(visualization.id))
+            logger.debug("publishing visualization '{}'".format(url))
+            shared_utils.publish_json(visualization, url)
 
     def _construct_panels(self):
         size_x = 6
@@ -213,9 +213,9 @@ class KibanaDashboard(dict):
         }
 
     def _publish(self):
-        shared_utils.publish_json(json.dumps(self),
-                                  urlparse.urljoin(base_elastic_url,
-                                                   '/.kibana/dashboard/{}'.format(self.id)))
+        url = urlparse.urljoin(base_elastic_url, '/.kibana/dashboard/{}'.format(self.id))
+        logger.debug("publishing dashboard '{}'".format(url))
+        shared_utils.publish_json(self, url)
 
     def publish(self):
         self._publish_visualizations()
