@@ -13,28 +13,6 @@ logger.addHandler(file_handler)
 
 _installers = {'fuel', 'apex', 'compass', 'joid'}
 
-# {
-#     "metrics":
-#         [
-#             {
-#                 "type": type,           # default sum
-#                 "params": {
-#                     "field": field      # mandatory, no default
-#                 },
-#                 {metric2}
-#         ],
-#     "segments":
-#         [
-#             {
-#                 "type": type,           # default date_histogram
-#                 "params": {
-#                     "field": field      # default creation_date
-#                 },
-#                 {segment2}
-#         ],
-#     "type": type                        # default area
-# }
-
 # see class VisualizationState for details on format
 _testcases = [
     ('functest', 'Tempest',
@@ -48,7 +26,7 @@ _testcases = [
                      }
                  }
              ],
-             "type": "area",
+             "type": "line"
          },
 
          {
@@ -66,53 +44,299 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram",
+             "type": "histogram"
          },
 
-         # add for success rate
-         # {
-         #     "metrics": [
-         #         {
-         #             "type": "avg",
-         #             "params": {
-         #                 "field": "details.duration"
-         #             }
-         #         }
-         #     ]
-         # }
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.success_percentage"
+                     }
+                 }
+             ],
+             "type": "area"
+         }
      ]
      ),
 
     ('functest', 'Rally',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.tests"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.success_percentage"
+                     }
+                 }
+             ],
+             "type": "line"
+         }
+     ]
      ),
 
     ('functest', 'vPing',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         }
+     ]
      ),
 
     ('functest', 'vPing_userdata',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         }
+     ]
      ),
 
     ('functest', 'ODL',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.tests"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.failures"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.success_percentage"
+                     }
+                 }
+             ],
+             "type": "area"
+         }
+     ]
      ),
 
     ('functest', 'ONOS',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.FUNCvirNet.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.FUNCvirNet.tests"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.FUNCvirNet.failures"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.FUNCvirNetL3.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.FUNCvirNetL3.tests"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.FUNCvirNetL3.failures"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         }
+     ]
      ),
 
     ('functest', 'vIMS',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.tests"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.failures"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.passed"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.skipped"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.vIMS.duration"
+                     }
+                 },
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.orchestrator.duration"
+                     }
+                 },
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.sig_test.duration"
+                     }
+                 }
+             ],
+             "type": "histogram",
+         }
+     ]
      ),
 
     ('promise', 'promise',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         },
+
+         {
+             "metrics": [
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.tests"
+                     }
+                 },
+                 {
+                     "type": "sum",
+                     "params": {
+                         "field": "details.failures"
+                     }
+                 }
+             ],
+             "type": "histogram"
+         }
+     ]
      ),
 
     ('doctor', 'doctor-notification',
-     []
+     [
+         {
+             "metrics": [
+                 {
+                     "type": "avg",
+                     "params": {
+                         "field": "details.duration"
+                     }
+                 }
+             ],
+             "type": "line"
+         }
+     ]
      )
 ]
 
@@ -267,6 +491,7 @@ class VisualizationState(dict):
                     {segment2}
                 ],
             "type": type                        # default area
+            "mode": mode                        # default grouped for type 'histogram', stacked for other types
             }
 
         default modes:
