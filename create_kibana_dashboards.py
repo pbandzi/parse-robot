@@ -47,17 +47,18 @@ _testcases = [
              "type": "histogram"
          },
 
-         {
-             "metrics": [
-                 {
-                     "type": "avg",
-                     "params": {
-                         "field": "details.success_percentage"
-                     }
-                 }
-             ],
-             "type": "area"
-         }
+         # need to add this data to elasticsearch
+         # {
+         #     "metrics": [
+         #         {
+         #             "type": "avg",
+         #             "params": {
+         #                 "field": "details.success_percentage"
+         #             }
+         #         }
+         #     ],
+         #     "type": "line"
+         # }
      ]
      ),
 
@@ -78,7 +79,7 @@ _testcases = [
          {
              "metrics": [
                  {
-                     "type": "sum",
+                     "type": "avg",
                      "params": {
                          "field": "details.tests"
                      }
@@ -162,7 +163,7 @@ _testcases = [
                      }
                  }
              ],
-             "type": "area"
+             "type": "line"
          }
      ]
      ),
