@@ -3,6 +3,10 @@ import json
 http = urllib3.PoolManager()
 
 
+def delete_request(url, body=None):
+    http.request('DELETE', url, body=body)
+
+
 def publish_json(json_ojb, output_destination):
     json_dump = json.dumps(json_ojb)
     if output_destination == 'stdout':
@@ -15,7 +19,7 @@ def _get_nr_of_hits(elastic_json):
     return elastic_json['hits']['total']
 
 
-def get_elastic_data(elastic_url, body):
+def get_elastic_data(elastic_url, body, field='_source'):
     # 1. get the number of results
     elastic_json = json.loads(http.request('GET', elastic_url + '/_search?size=0', body=body).data)
     nr_of_hits = _get_nr_of_hits(elastic_json)
@@ -25,5 +29,5 @@ def get_elastic_data(elastic_url, body):
 
     elastic_data = []
     for hit in elastic_json['hits']['hits']:
-        elastic_data.append(hit['_source'])
+        elastic_data.append(hit[field])
     return elastic_data
