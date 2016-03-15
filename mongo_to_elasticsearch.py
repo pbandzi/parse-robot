@@ -54,6 +54,16 @@ def _convert_duration(duration):
     return int_duration
 
 
+def modify_functest_tempest(testcase):
+    if modify_default_entry(testcase):
+        testcase_details = testcase['details']
+        testcase_tests = float(testcase_details['tests'])
+        testcase_failures = float(testcase_details['failures'])
+        testcase_details['success_percentage'] = 100 * (testcase_tests - testcase_failures) / testcase_tests
+    else:
+        return False
+
+
 def modify_functest_vims(testcase):
     """
     Structure:
@@ -330,6 +340,8 @@ def modify_mongo_entry(testcase):
                 return modify_functest_onos(testcase)
             elif case_name == 'vIMS':
                 return modify_functest_vims(testcase)
+            elif case_name == 'Tempest':
+                return modify_functest_tempest(testcase)
         return modify_default_entry(testcase)
     else:
         return False
