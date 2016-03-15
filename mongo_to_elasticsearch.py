@@ -63,6 +63,7 @@ def modify_functest_tempest(testcase):
             testcase_details['success_percentage'] = 100 * (testcase_tests - testcase_failures) / testcase_tests
         else:
             testcase_details['success_percentage'] = 0
+        return True
     else:
         return False
 
