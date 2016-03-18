@@ -26,7 +26,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "Tempest duration",
+                 "test_family": "VIM"
+             }
          },
 
          {
@@ -44,7 +48,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "Tempest nr of tests/failures",
+                 "test_family": "VIM"
+             }
          },
 
          {
@@ -56,7 +64,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "Tempest success percentage",
+                 "test_family": "VIM"
+             }
          }
      ]
      ),
@@ -72,7 +84,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "Rally duration",
+                 "test_family": "VIM"
+             }
          },
 
          {
@@ -84,7 +100,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "Rally nr of tests",
+                 "test_family": "VIM"
+             }
          },
 
          {
@@ -96,7 +116,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "Rally success percentage",
+                 "test_family": "VIM"
+             }
          }
      ]
      ),
@@ -112,7 +136,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "vPing duration",
+                 "test_family": "VIM"
+             }
          }
      ]
      ),
@@ -128,7 +156,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "vPing_userdata duration",
+                 "test_family": "VIM"
+             }
          }
      ]
      ),
@@ -150,7 +182,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "ODL nr of tests/failures",
+                 "test_family": "Controller"
+             }
          },
 
          {
@@ -162,7 +198,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "ODL success percentage",
+                 "test_family": "Controller"
+             }
          }
      ]
      ),
@@ -178,7 +218,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "ONOS FUNCvirNet duration",
+                 "test_family": "Controller"
+             }
          },
 
          {
@@ -196,7 +240,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "ONOS FUNCvirNet nr of tests/failures",
+                 "test_family": "Controller"
+             }
          },
 
          {
@@ -208,7 +256,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "ONOS FUNCvirNetL3 duration",
+                 "test_family": "Controller"
+             }
          },
 
          {
@@ -226,7 +278,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "ONOS FUNCvirNetL3 nr of tests/failures",
+                 "test_family": "Controller"
+             }
          }
      ]
      ),
@@ -260,7 +316,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "vIMS nr of tests/failures/passed/skipped",
+                 "test_family": "Features"
+             }
          },
 
          {
@@ -285,6 +345,10 @@ _testcases = [
                  }
              ],
              "type": "histogram",
+             "metadata": {
+                 "label": "vIMS/ochestrator/test duration",
+                 "test_family": "Features"
+             }
          }
      ]
      ),
@@ -300,7 +364,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "promise duration",
+                 "test_family": "Features"
+             }
          },
 
          {
@@ -318,7 +386,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "histogram"
+             "type": "histogram",
+             "metadata": {
+                 "label": "promise nr of tests/failures",
+                 "test_family": "Features"
+             }
          }
      ]
      ),
@@ -334,7 +406,11 @@ _testcases = [
                      }
                  }
              ],
-             "type": "line"
+             "type": "line",
+             "metadata": {
+                 "label": "doctor-notification duration",
+                 "test_family": "Features"
+             }
          }
      ]
      )
@@ -436,6 +512,7 @@ class KibanaDashboard(dict):
             },
                 separators=(',', ':'))
         }
+        self['metadata'] = self.visualization_detail['metadata']
 
     def _publish(self):
         url = urlparse.urljoin(base_elastic_url, '/.kibana/dashboard/{}'.format(self.id))
@@ -491,8 +568,12 @@ class VisualizationState(dict):
                     },
                     {segment2}
                 ],
-            "type": type                        # default area
-            "mode": mode                        # default grouped for type 'histogram', stacked for other types
+            "type": type,                       # default area
+            "mode": mode,                       # default grouped for type 'histogram', stacked for other types
+            "metadata": {
+                    "label": "Tempest duration",# mandatory, no default
+                    "test_family": "VIM"        # mandatory, no default
+                }
             }
 
         default modes:
@@ -681,15 +762,55 @@ def construct_dashboards():
     return kibana_dashboards
 
 
+def generate_js_inputs(js_file_path, kibana_url, dashboards):
+    js_dict = {}
+    for dashboard in dashboards:
+        dashboard_meta = dashboard['metadata']
+        test_family = dashboard_meta['test_family']
+        test_label = dashboard_meta['label']
+
+        if test_family not in js_dict:
+            js_dict[test_family] = {}
+
+        js_test_family = js_dict[test_family]
+
+        if test_label not in js_test_family:
+            js_test_family[test_label] = {}
+
+        js_test_label = js_test_family[test_label]
+
+        if dashboard.installer not in js_test_label:
+            js_test_label[dashboard.installer] = {}
+
+        js_installer = js_test_label[dashboard.installer]
+        js_installer[dashboard.pod] = kibana_url + '#/dashboard/' + dashboard.id
+
+    with open(js_file_path, 'w+') as js_file_fdesc:
+        js_file_fdesc.write('var kibana_dashboard_links = ')
+        js_file_fdesc.write(str(js_dict).replace("u'", "'"))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create Kibana dashboards from data in elasticsearch')
     parser.add_argument('-e', '--elasticsearch-url', default='http://localhost:9200',
                         help='the url of elasticsearch, defaults to http://localhost:9200')
+    parser.add_argument('-js', '--generate_js_inputs', action='store_true',
+                        help='Use this argument to generate javascript inputs for kibana landing page')
+    parser.add_argument('--js_path', default='/usr/share/nginx/html/kibana_dashboards/conf.js',
+                        help='Path of javascript file with inputs for kibana landing page')
+    parser.add_argument('-k', '--kibana_url', default='http://testresults.opnfv.org/kibana/app/kibana',
+                        help='The url of kibana for javascript inputs')
 
     args = parser.parse_args()
     base_elastic_url = args.elasticsearch_url
+    generate_inputs = args.generate_js_inputs
+    input_file_path = args.js_path
+    kibana_url = args.kibana_url
 
     dashboards = construct_dashboards()
 
     for kibana_dashboard in dashboards:
         kibana_dashboard.publish()
+
+    if generate_inputs:
+        generate_js_inputs(input_file_path, kibana_url, dashboards)
