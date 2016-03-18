@@ -399,10 +399,11 @@ class KibanaDashboard(dict):
         return json.dumps(panels_json, separators=(',', ':'))
 
     def _create(self):
-        self['title'] = '{} {} {} {}'.format(self.project_name,
-                                             self.case_name,
-                                             self._visualization_title,
-                                             self.pod)
+        self['title'] = '{} {} {} {} {}'.format(self.project_name,
+                                                self.case_name,
+                                                self.installer,
+                                                self._visualization_title,
+                                                self.pod)
         self.id = self['title'].replace(' ', '-').replace('/', '-')
 
         self['hits'] = 0
