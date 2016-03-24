@@ -294,25 +294,25 @@ _testcases = [
                  {
                      "type": "sum",
                      "params": {
-                         "field": "details.tests"
+                         "field": "details.sig_test.tests"
                      }
                  },
                  {
                      "type": "sum",
                      "params": {
-                         "field": "details.failures"
+                         "field": "details.sig_test.failures"
                      }
                  },
                  {
                      "type": "sum",
                      "params": {
-                         "field": "details.passed"
+                         "field": "details.sig_test.passed"
                      }
                  },
                  {
                      "type": "sum",
                      "params": {
-                         "field": "details.skipped"
+                         "field": "details.sig_test.skipped"
                      }
                  }
              ],
@@ -447,7 +447,7 @@ class KibanaDashboard(dict):
         for visualization in self._kibana_visualizations:
             url = urlparse.urljoin(base_elastic_url, '/.kibana/visualization/{}'.format(visualization.id))
             logger.debug("publishing visualization '{}'".format(url))
-            shared_utils.publish_json(visualization, url)
+            shared_utils.publish_json(visualization, es_user, es_passwd, url)
 
     def _construct_panels(self):
         size_x = 6
@@ -517,7 +517,7 @@ class KibanaDashboard(dict):
     def _publish(self):
         url = urlparse.urljoin(base_elastic_url, '/.kibana/dashboard/{}'.format(self.id))
         logger.debug("publishing dashboard '{}'".format(url))
-        shared_utils.publish_json(self, url)
+        shared_utils.publish_json(self, es_user, es_passwd, url)
 
     def publish(self):
         self._publish_visualizations()
@@ -723,7 +723,7 @@ def _get_pods_and_versions(project_name, case_name, installer):
     })
 
     elastic_data = shared_utils.get_elastic_data(urlparse.urljoin(base_elastic_url, '/test_results/mongo2elastic'),
-                                                 query_json)
+                                                 es_user, es_passwd, query_json)
 
     pods_and_versions = {}
 
@@ -798,14 +798,22 @@ if __name__ == '__main__':
                         help='Use this argument to generate javascript inputs for kibana landing page')
     parser.add_argument('--js_path', default='/usr/share/nginx/html/kibana_dashboards/conf.js',
                         help='Path of javascript file with inputs for kibana landing page')
-    parser.add_argument('-k', '--kibana_url', default='http://testresults.opnfv.org/kibana/app/kibana',
+    parser.add_argument('-k', '--kibana_url', default='https://testresults.opnfv.org/kibana/app/kibana',
                         help='The url of kibana for javascript inputs')
+
+    parser.add_argument('-u', '--elasticsearch-username',
+                        help='the username for elasticsearch')
+
+    parser.add_argument('-p', '--elasticsearch-password',
+                        help='the password for elasticsearch')
 
     args = parser.parse_args()
     base_elastic_url = args.elasticsearch_url
     generate_inputs = args.generate_js_inputs
     input_file_path = args.js_path
     kibana_url = args.kibana_url
+    es_user = args.elasticsearch_username
+    es_passwd = args.elasticsearch_password
 
     dashboards = construct_dashboards()
 

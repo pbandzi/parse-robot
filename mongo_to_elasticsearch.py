@@ -360,7 +360,7 @@ def publish_mongo_data(output_destination):
             for mongo_json_line in fobj:
                 test_result = json.loads(mongo_json_line)
                 if modify_mongo_entry(test_result):
-                    shared_utils.publish_json(test_result, output_destination)
+                    shared_utils.publish_json(test_result, output_destination, es_user, es_passwd)
     finally:
         if os.path.exists(tmp_filename):
             os.remove(tmp_filename)
@@ -381,7 +381,7 @@ def get_mongo_data(days):
     return mongo_data
 
 
-def publish_difference(mongo_data, elastic_data, output_destination):
+def publish_difference(mongo_data, elastic_data, output_destination, es_user, es_passwd):
     for elastic_entry in elastic_data:
         if elastic_entry in mongo_data:
             mongo_data.remove(elastic_entry)
@@ -389,7 +389,7 @@ def publish_difference(mongo_data, elastic_data, output_destination):
     logger.info('number of parsed test results: {}'.format(len(mongo_data)))
 
     for parsed_test_result in mongo_data:
-        shared_utils.publish_json(parsed_test_result, output_destination)
+        shared_utils.publish_json(parsed_test_result, es_user, es_passwd, output_destination)
 
 
 if __name__ == '__main__':
@@ -399,7 +399,7 @@ if __name__ == '__main__':
                         choices=('elasticsearch', 'stdout'),
                         help='defaults to elasticsearch')
 
-    parser.add_argument('-u', '--update', default=0, type=int, metavar='N',
+    parser.add_argument('-ml', '--merge-latest', default=0, type=int, metavar='N',
                         help='get entries old at most N days from mongodb and'
                              ' parse those that are not already in elasticsearch.'
                              ' If not present, will get everything from mongodb, which is the default')
@@ -407,13 +407,21 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--elasticsearch-url', default='http://localhost:9200',
                         help='the url of elasticsearch, defaults to http://localhost:9200')
 
+    parser.add_argument('-u', '--elasticsearch-username',
+                        help='the username for elasticsearch')
+
+    parser.add_argument('-p', '--elasticsearch-password',
+                        help='the password for elasticsearch')
+
     parser.add_argument('-m', '--mongodb-url', default='http://localhost:8082',
                         help='the url of mongodb, defaults to http://localhost:8082')
 
     args = parser.parse_args()
     base_elastic_url = urlparse.urljoin(args.elasticsearch_url, '/test_results/mongo2elastic')
     output_destination = args.output_destination
-    days = args.update
+    days = args.merge_latest
+    es_user = args.elasticsearch_username
+    es_passwd = args.elasticsearch_password
 
     if output_destination == 'elasticsearch':
         output_destination = base_elastic_url
@@ -432,9 +440,9 @@ if __name__ == '__main__':
         }}
     }}
 }}'''.format(days)
-        elastic_data = shared_utils.get_elastic_data(base_elastic_url, body)
+        elastic_data = shared_utils.get_elastic_data(base_elastic_url, es_user, es_passwd, body)
         logger.info('number of hits in elasticsearch for now-{}d: {}'.format(days, len(elastic_data)))
         mongo_data = get_mongo_data(days)
-        publish_difference(mongo_data, elastic_data, output_destination)
+        publish_difference(mongo_data, elastic_data, output_destination, es_user, es_passwd)
     else:
         raise Exception('Update must be non-negative')
